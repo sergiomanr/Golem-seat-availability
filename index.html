@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doré Theater - Cartelera</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --sidebar-bg: #1a1a1a;
+            --floor-color: #585555;
+            --seat-available: #9dfb6b;
+            --seat-occupied: #979797;
+            --seat-hover: #fab005;
+            --text-light: #f8f9fa;
+            --accent: #e9ecef;
+        }
+
+        @font-face {
+            font-family: 'Suisse';
+            src: local('Suisse'), local('Suisse Int\'l'), local('Suisse Intl');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Suisse', 'Inter', 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #333;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px solid var(--floor-color);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .date-group {
+            margin-bottom: 20px;
+        }
+
+        .date-header {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .movie-btn {
+            background: none;
+            border: 1px solid #333;
+            color: var(--text-light);
+            padding: 12px;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .movie-btn:hover {
+            background-color: #333;
+        }
+
+        .movie-btn.active {
+            border-color: var(--seat-available);
+            background-color: rgba(157, 251, 107, 0.1);
+        }
+
+        .movie-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .availability-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: rgba(157, 251, 107, 0.2);
+            color: var(--seat-available);
+        }
+
+        /* Main Area Styling */
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; 
+            padding: 60px 40px; 
+            position: relative;
+            overflow-y: auto;
+        }
+
+        #room-title {
+            font-size: 2.2rem;
+            letter-spacing: 5px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        #selected-movie {
+            font-size: 1.1rem;
+            color: #888;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .theater-container {
+            background-color: var(--floor-color);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 6px;
+            min-width: 450px;
+            margin-bottom: 20px;
+        }
+
+        .theater-row {
+            display: flex;
+            justify-content: center;
+            flex-direction: row-reverse;
+            gap: 6px;
+            align-items: center;
+            position: relative;
+        }
+
+        .seat {
+            width: 22px; 
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s;
+        }
+
+        .seat:hover {
+            z-index: 100;
+        }
+
+        .seat.available {
+            background-color: var(--seat-available);
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
+        }
+
+        .seat.available:hover {
+            transform: scale(1.2);
+            background-color: var(--seat-hover);
+        }
+
+        .seat.occupied {
+            background-color: var(--seat-occupied);
+            cursor: default;
+            opacity: 0.8;
+        }
+
+        .seat.accessible::after {
+            content: "♿";
+            font-size: 12px;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .section-label {
+            width: 100%;
+            text-align: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin: 8px 0;
+            pointer-events: none;
+        }
+
+        .stage {
+            background: linear-gradient(to bottom, #e9ecef, #adb5bd);
+            color: #212529;
+            text-align: center;
+            padding: 8px;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1rem;
+            border-radius: 4px;
+            letter-spacing: 12px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            margin-bottom: 40px; 
+            background: rgba(0,0,0,0.2);
+            padding: 10px 25px;
+            border-radius: 30px;
+        }
+        .seat:hover .tooltip {
+            opacity: 1;
+        }
+        .tooltip {
+            position: absolute;
+            bottom: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #212529;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 200;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <h2>Filmoteca</h2>
+        <div id="movie-list">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <div id="main-content">
+        <h1 id="room-title">SELECCIONA UNA SESIÓN</h1>
+        <p id="selected-movie">Toca una película en la columna de la izquierda</p>
+
+        <div class="theater-container" id="theater-map" style="display:none;">
+            <!-- Seats will be injected here -->
+        </div>
+
+        <div class="stage" id="stage" style="display:none;">ESCENARIO</div>
+
+        <div class="legend" id="legend" style="display:none;">
+            <div class="legend-item">
+                <div class="legend-dot" style="background: var(--seat-available);"></div>
+                Libre
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: var(--seat-occupied);"></div>
+                Ocupado
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: var(--seat-available); display:flex; align-items:center; justify-content:center; color:white; font-size:10px;">♿</div>
+                Movilidad Reducida
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ROOM_LAYOUTS = {
+            "Sala 1": [
+                { row: 1, seats: 16 }, { row: 2, seats: 16 }, { row: 3, seats: 16 }, { row: 4, seats: 16 },
+                { row: 5, seats: 16 }, { row: 6, seats: 16 }, { row: 7, seats: 16 }, { row: 8, seats: 16 },
+                { row: 9, seats: 16 }, { row: 10, seats: 16 }, { row: 11, seats: 16 }, { row: 12, seats: 16 },
+                { row: 13, seats: 14, offset: 1 }, { row: 14, seats: 12, offset: 2 }, { row: 15, seats: 10, offset: 3 },
+                { type: 'label', text: 'Patio de Butacas' },
+                { row: 16, seats: 17 }, { row: 17, seats: 17 }, { row: 18, seats: 17 }, { row: 19, seats: 17 },
+                { row: 20, seats: 16 },
+                { type: 'label', text: 'Anfiteatro' }
+            ],
+            "Sala 2": [
+                { row: 1, seats: 6 }, { row: 2, seats: 9 }, { row: 3, seats: 10 }, { row: 4, seats: 10 },
+                { row: 5, seats: 10 }, { row: 6, seats: 10 }, { row: 7, seats: 12 }, { row: 8, seats: 11 },
+                { row: 9, seats: 12 }, { row: 10, seats: 12 }, { row: 11, seats: 13 }
+            ]
+        };
+
+        let moviesData = {};
+
+        async function init() {
+            try {
+                const response = await fetch('movies_data.json');
+                moviesData = await response.json();
+                
+                renderSidebar();
+            } catch (err) {
+                console.error("Error loading data:", err);
+            }
+        }
+
+        function renderSidebar() {
+            const list = document.getElementById('movie-list');
+            const sessionsByDate = {};
+
+            Object.entries(moviesData).forEach(([title, data]) => {
+                const date = data.Date || "Sin fecha";
+                if (!sessionsByDate[date]) sessionsByDate[date] = [];
+                sessionsByDate[date].push({ title, ...data });
+            });
+
+            // Sort dates
+            const sortedDates = Object.keys(sessionsByDate).sort();
+
+            sortedDates.forEach(date => {
+                const group = document.createElement('div');
+                group.className = 'date-group';
+                
+                const header = document.createElement('div');
+                header.className = 'date-header';
+                header.textContent = date;
+                group.appendChild(header);
+
+                sessionsByDate[date].forEach(session => {
+                    // Calculate availability percentage
+                    const availableCount = session.available_seats.length;
+                    const occupiedCount = session.occupied_seats.length;
+                    const totalSeats = availableCount + occupiedCount;
+                    const availabilityPct = totalSeats > 0 ? Math.round((availableCount / totalSeats) * 100) : 0;
+
+                    // Extract time from URL if possible (fallback to Time property)
+                    let time = session.Time || "";
+                    if (!time && session.url && session.url[1]) {
+                        const parts = session.url[1].split('/');
+                        const lastPart = parts[parts.length - 1];
+                        if (lastPart.includes(':')) time = lastPart;
+                    }
+
+                    const btn = document.createElement('button');
+                    btn.className = 'movie-btn';
+                    
+                    btn.innerHTML = `
+                        <div class="movie-info-row">
+                            <strong>${session.title}</strong>
+                            <span class="availability-badge">${availabilityPct}%</span>
+                        </div>
+                        <div class="movie-info-row">
+                            <small>${session.Room}</small>
+                            <small>${time}</small>
+                        </div>
+                    `;
+                    btn.onclick = () => selectSession(session, btn);
+                    group.appendChild(btn);
+                });
+
+                list.appendChild(group);
+            });
+        }
+
+        function selectSession(session, btn) {
+            // UI Feedback
+            document.querySelectorAll('.movie-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            document.getElementById('room-title').textContent = session.Room.toUpperCase();
+            document.getElementById('selected-movie').textContent = session.title;
+            document.getElementById('theater-map').style.display = 'flex';
+            document.getElementById('stage').style.display = 'block';
+            document.getElementById('legend').style.display = 'flex';
+
+            renderRoom(session);
+        }
+
+        function renderRoom(session) {
+            const container = document.getElementById('theater-map');
+            container.innerHTML = '';
+
+            const isSala2 = session.Room === "Sala 2";
+            const layout = ROOM_LAYOUTS[session.Room] || ROOM_LAYOUTS["Sala 1"];
+            const availableMap = new Map();
+            session.available_seats.forEach(s => availableMap.set(`${s.row}-${s.number}`, s));
+
+            container.style.alignItems = isSala2 ? 'flex-end' : 'center';
+
+            layout.forEach(item => {
+                if (item.type === 'label') {
+                    const label = document.createElement('div');
+                    label.className = 'section-label';
+                    label.textContent = item.text;
+                    container.appendChild(label);
+                    return;
+                }
+
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'theater-row';
+                rowDiv.style.justifyContent = isSala2 ? 'flex-start' : 'center';
+                
+                for (let n = 1; n <= item.seats; n++) {
+                    const seatData = availableMap.get(`${item.row}-${n}`);
+                    const seatEl = document.createElement('div');
+                    seatEl.classList.add('seat');
+                    
+                    const tooltip = document.createElement('div');
+                    tooltip.classList.add('tooltip');
+
+                    if (seatData) {
+                        seatEl.classList.add('available');
+                        if (item.row === 1 && (n === 4 || n === 10)) {
+                            seatEl.classList.add('accessible');
+                        }
+                        tooltip.innerHTML = `<strong>Fila ${item.row} - Asiento ${n}</strong>`;
+                    } else {
+                        seatEl.classList.add('occupied');
+                        tooltip.innerHTML = `<strong>Fila ${item.row} - Asiento ${n} (Ocupado)</strong>`;
+                    }
+
+                    seatEl.appendChild(tooltip);
+                    rowDiv.appendChild(seatEl);
+                }
+
+                container.appendChild(rowDiv);
+            });
+        }
+
+        init();
+    </script>
