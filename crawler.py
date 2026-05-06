@@ -54,8 +54,9 @@ def run_scraper():
                 href = raw_href.strip()
                 if "/golem/pelicula/" in href:
                     if len(href.strip("/").split("/")) >= 3: 
-                        # full_url = href if href.startswith("http") else f"https://entradasfilmoteca.sacatuentrada.es{href}"
-                        movie_urls.add(href)
+                        full_url = href if href.startswith("http") else f"https://www.golem.es{href}"
+                        movie_urls.add(full_url)
+            
 
         # print("\n--- HARVESTING LINKS PAGE 2---")
         # page.goto("https://entradasfilmoteca.sacatuentrada.es/es/busqueda?&pagina=2", wait_until="networkidle")
@@ -76,9 +77,8 @@ def run_scraper():
         print("\n--- VISITING EACH MOVIE ---")
         movie_urls_2 = []
         for url in movie_urls:
-            movie_plus_date =[]
-            movie_plus_date.append(url.split("/")[-1])
-            page.goto(url, wait_until="networkidle")
+
+            page.goto(url, wait_until="domcontentloaded")
             page.wait_for_timeout(2000)
 
             links_4 = page.locator("a").all()
@@ -86,17 +86,78 @@ def run_scraper():
                 raw_href = link.get_attribute("href")
                 if raw_href:
                     href = raw_href.strip()
-                    if "/numeradas/" in href:
-                        movie_plus_date.append(href)
-                        movie_plus_date.append(page.locator("div.calendario_reserva.row").first.inner_text().strip())
-                        movie_urls_2.append(movie_plus_date)
+                    if "madrid.admit-one.eu" in href:
+                        movie_urls_2.append(href)
+            break
+        # print(movie_urls_2)
 
-        # for url in movie_urls_2:
-        #         good_url = url[1]
-        #         date = url[0]
-        #         Room = url[2]
-        #         time = Room[:5]
+        final_screening_urls = []
+        for url in movie_urls_2:
+            print(f"\nVisiting ticket page: {url}")
+            page.goto(url, wait_until="domcontentloaded")
+            page.wait_for_timeout(2000)
+            
+            try:
+                # Find all 'a' tags inside the first 'div.my-4'
+                screening_links = page.locator("div.my-4").first.locator("a").all()
+                for link in screening_links:
+                    href = link.get_attribute("href")
+                    if href:
+                        final_screening_urls.append(href)
+            except Exception as e:
+                print(f"Could not extract screening links: {e}")
+
+        print(final_screening_urls)
+            
+
+        for url in final_screening_urls:
+                page.goto(url, wait_until="domcontentloaded")
+                page.wait_for_timeout(2000)
                 
+                good_url = url[1]
+                date = url[0]
+                Room = url[2]
+                time = Room[:5]
+
+                seats = page.locator("span.as_1").all()
+
+                movie_seats = {
+                    "available_seats": [],
+                    "occupied_seats": []
+                }
+
+                try:
+                    page.wait_for_selector("span.as_1", timeout=5000)
+                except:
+                    print("   -> No seats found. Might be general admission or sold out.")
+                    continue
+
+
+                for seat in seats:
+                    seat_class = seat.get_attribute("class") or ""
+                    seat_id = seat.get_attribute("id")
+                    
+                    if "as_1" in seat_class:
+                        movie_seats["available_seats"].append({
+                            "id": seat_id,
+                            "status": "green (available)"
+                            # "puerta": seat.get_attribute("name-puerta"),
+                            # "row": seat.get_attribute("data-option-fila"),
+                            # "number": seat.get_attribute("data-option-numero"),
+                        })
+                    elif "us_1" in seat_class:
+                        movie_seats["occupied_seats"].append({
+                            "id": seat_id,
+                            "status": "grey (occupied)"
+                            # "puerta": "Unknown (Data hidden by website)"
+                        })
+                    # movie_seats["Date"] = date
+                    # movie_seats["Time"] = time
+                    # movie_seats["Room"] = room
+                print(f"   -> Found {len(movie_seats['available_seats'])} available and {len(movie_seats['occupied_seats'])} occupied seats.")
+                # all_movies_data[movie_title] = movie_seats
+
+
         #         if Room[13] == "1":
         #             room = "Sala 1"
         #         else:
@@ -111,41 +172,11 @@ def run_scraper():
 
         #         print(f"   -> Scraping seats for: {movie_title}")
                 
-        #         try:
-        #             page.wait_for_selector("span.butaca", timeout=5000)
-        #         except:
-        #             print("   -> No seats found. Might be general admission or sold out.")
-        #             continue
+                
 
-        #         movie_seats = {
-        #             "available_seats": [],
-        #             "occupied_seats": []
-        #         }
+                
 
-        #         seats = page.locator("span.butaca").all()
-        #         for seat in seats:
-        #             seat_class = seat.get_attribute("class") or ""
-        #             seat_id = seat.get_attribute("id")
-                    
-        #             if "green" in seat_class:
-        #                 movie_seats["available_seats"].append({
-        #                     "id": seat_id,
-        #                     "status": "green (available)",
-        #                     "puerta": seat.get_attribute("name-puerta"),
-        #                     "row": seat.get_attribute("data-option-fila"),
-        #                     "number": seat.get_attribute("data-option-numero"),
-        #                 })
-        #             elif "grey" in seat_class:
-        #                 movie_seats["occupied_seats"].append({
-        #                     "id": seat_id,
-        #                     "status": "grey (occupied)",
-        #                     "puerta": "Unknown (Data hidden by website)"
-        #                 })
-        #             movie_seats["Date"] = date
-        #             movie_seats["Time"] = time
-        #             movie_seats["Room"] = room
-        #         print(f"   -> Found {len(movie_seats['available_seats'])} available and {len(movie_seats['occupied_seats'])} occupied seats.")
-        #         all_movies_data[movie_title] = movie_seats
+                
 
         # browser.close()
 
