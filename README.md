@@ -1,4 +1,4 @@
-# Doré Theater Dashboard
+# Golem Theater Dashboard
 
 ![Example of the dashboard](<captura.png>)
 
