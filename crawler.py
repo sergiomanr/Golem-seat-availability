@@ -24,23 +24,23 @@ def run_scraper():
 
         print("Loading the main page...")
         # Open the main page
-        page.goto("https://www.golem.es/golem/golem-madrid", wait_until="networkidle")
+        page.goto("https://www.golem.es/golem/golem-madrid", wait_until="domcontentloaded")
         # page.wait_for_timeout(2000) # Give dynamic content time to load
 
         # --- THE COOKIE DESTROYER ---
-        print("\n--- CHECKING FOR COOKIES ---")
-        try:
-            # Search for the div with id "cookiescript_accept"
-            accept_btn = page.locator("#cookiescript_accept")
+        # print("\n--- CHECKING FOR COOKIES ---")
+        # try:
+        #     # Search for the div with id "cookiescript_accept"
+        #     accept_btn = page.locator("#cookiescript_accept")
             
-            if accept_btn.count() > 0 and accept_btn.is_visible():
-                print("Cookie banner detected! Clicking 'ACEPTAR'...")
-                accept_btn.click()
-                page.wait_for_timeout(1500) # Give it time to fade away
-            else:
-                print("No cookie banner visible. Proceeding...")
-        except Exception as e:
-            print(f"Could not click cookie banner: {e}")
+        #     if accept_btn.count() > 0 and accept_btn.is_visible():
+        #         print("Cookie banner detected! Clicking 'ACEPTAR'...")
+        #         accept_btn.click()
+        #         page.wait_for_timeout(1500) # Give it time to fade away
+        #     else:
+        #         print("No cookie banner visible. Proceeding...")
+        # except Exception as e:
+        #     print(f"Could not click cookie banner: {e}")
         # ----------------------------
 
         print("\n--- HARVESTING LINKS ---")
@@ -88,7 +88,7 @@ def run_scraper():
                     href = raw_href.strip()
                     if "madrid.admit-one.eu" in href:
                         movie_urls_2.append(href)
-            break
+            # break
         # print(movie_urls_2)
 
         final_screening_urls = []
@@ -96,32 +96,31 @@ def run_scraper():
             print(f"\nVisiting ticket page: {url}")
             page.goto(url, wait_until="domcontentloaded")
             page.wait_for_timeout(2000)
-            
+            screenings_per_movie = []
             try:
                 # Find all 'a' tags inside the first 'div.my-4'
                 screening_links = page.locator("div.my-4").first.locator("a").all()
                 for link in screening_links:
                     href = link.get_attribute("href")
                     if href:
-                        final_screening_urls.append(href)
+                        screenings_per_movie.append(href)
             except Exception as e:
                 print(f"Could not extract screening links: {e}")
-
-        print(final_screening_urls)
+            final_screening_urls.append(screenings_per_movie)
             
 
-        for url in final_screening_urls:
-                page.goto(url, wait_until="domcontentloaded")
+        # print(final_screening_urls)
+            
+
+        for movie in final_screening_urls:
+            all_seats_per_screening = {}
+            for screening in movie:
+                page.goto(screening, wait_until="domcontentloaded")
                 page.wait_for_timeout(2000)
-                
-                good_url = url[1]
-                date = url[0]
-                Room = url[2]
-                time = Room[:5]
 
-                seats = page.locator("span.as_1").all()
 
-                movie_seats = {
+                seats = page.locator("span.as_1, span.us_1, span.us_1_res").all()
+                movie_seats_for_screening = {
                     "available_seats": [],
                     "occupied_seats": []
                 }
@@ -131,51 +130,54 @@ def run_scraper():
                 except:
                     print("   -> No seats found. Might be general admission or sold out.")
                     continue
-
+                
+                try:
+                    movie_title = page.locator("h3").nth(6).inner_text().strip()
+                except:
+                    movie_title = "Unknown Movie"
+                
+                try:
+                    performance_html = page.locator('div[id^="a1web-cart-performance-detailed-"]').first.inner_html()
+                    room = f'Sala {performance_html.split(">")[1].split(" ")[4][:2]}'
+                    date = ' '.join(performance_html.split(">")[3].split(" ")[:3])
+                    time = str(performance_html.split(">")[3].split(" ")[5][:-3])
+                except:
+                    performance_html = "Not found"
+                    room = "Unknown Room"
+                    date = "Unknown Date"
+                    time = "Unknown Time"
 
                 for seat in seats:
-                    seat_class = seat.get_attribute("class") or ""
-                    seat_id = seat.get_attribute("id")
+                    seat_class = seat.get_attribute("class")
+                    
+                    try:
+                        seat_id = seat.get_attribute("id")
+                    except:
+                            seat_id = 0
+
                     
                     if "as_1" in seat_class:
-                        movie_seats["available_seats"].append({
+                        movie_seats_for_screening["available_seats"].append({
                             "id": seat_id,
                             "status": "green (available)"
-                            # "puerta": seat.get_attribute("name-puerta"),
-                            # "row": seat.get_attribute("data-option-fila"),
-                            # "number": seat.get_attribute("data-option-numero"),
                         })
                     elif "us_1" in seat_class:
-                        movie_seats["occupied_seats"].append({
-                            "id": seat_id,
+                        movie_seats_for_screening["occupied_seats"].append({
                             "status": "grey (occupied)"
                             # "puerta": "Unknown (Data hidden by website)"
                         })
-                    # movie_seats["Date"] = date
-                    # movie_seats["Time"] = time
-                    # movie_seats["Room"] = room
-                print(f"   -> Found {len(movie_seats['available_seats'])} available and {len(movie_seats['occupied_seats'])} occupied seats.")
-                # all_movies_data[movie_title] = movie_seats
+                    else:
+                        movie_seats_for_screening["reserved_seats"].appen({
+                            "status": "grey (occupied)"
+                        })
+                    
+                    movie_seats_for_screening["Date"] = date
+                    # movie_seats_for_screening["Time"] = time
+                    movie_seats_for_screening["Room"] = room
+                print(f"   -> Found {len(movie_seats_for_screening['available_seats'])} available and {len(movie_seats_for_screening['occupied_seats'])} occupied seats.")
+                all_seats_per_screening[time] = movie_seats_for_screening
 
-
-        #         if Room[13] == "1":
-        #             room = "Sala 1"
-        #         else:
-        #             room = "Sala 2"
-        #         print(f"\nLoading: {good_url}")
-        #         page.goto(good_url, wait_until="networkidle")
-                
-        #         try:
-        #             movie_title = page.locator("h1").first.inner_text().strip()
-        #         except:
-        #             movie_title = "Unknown Movie - " + good_url.split("/")[-2]
-
-        #         print(f"   -> Scraping seats for: {movie_title}")
-                
-                
-
-                
-
+            all_movies_data[movie_title] = all_seats_per_screening
                 
 
         # browser.close()
