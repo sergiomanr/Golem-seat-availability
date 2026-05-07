@@ -300,7 +300,7 @@
     <script>
         const ROOM_LAYOUTS = {
             "Sala 1": {
-                direction: "ltr",
+                direction: "tlr",
                 rows: [
                     { row: 7, seats: 11 },
                     { row: 6, seats: 10, offset: 1 },
@@ -342,7 +342,7 @@
                 ]
             },
             "Sala 4": {
-                direction: "rtr",
+                direction: "ltr",
                 rows: [
                     { row: 11, seats: 11, offset: 3},
                     { row: 10, seats: 12, offset: 2},
@@ -358,19 +358,19 @@
                 ]
             },
             "Sala 5": {
-                direction: "rtl",
+                direction: "ltr",
                 rows: [
-                    { row: 13, seats: 13, offset: -1 },
-                    { row: 12, seats: 13, offset: -1 },
-                    { row: 11, seats: 13, offset: -1 },
-                    { row: 10, seats: 13, offset: -1 },
-                    { row: 9,  seats: 13, offset: -1 },
-                    { row: 8,  seats: 12, offset: -2 },
-                    { row: 7,  seats: 11, offset: 1 },
+                    { row: 13, seats: 13, offset: 1 },
+                    { row: 12, seats: 13, offset: 1 },
+                    { row: 11, seats: 13, offset: 1 },
+                    { row: 10, seats: 13, offset: 1 },
+                    { row: 9,  seats: 13, offset: 1 },
+                    { row: 8,  seats: 12, offset: 2 },
+                    { row: 7,  seats: 11, offset: 2 },
                     { row: 6,  seats: 10, offset: 2 },
-                    { row: 5,  seats: 13, offset: 1 },
-                    { row: 4,  seats: 13, offset: 1 },
-                    { row: 3,  seats: 13, offset: 1 },
+                    { row: 5,  seats: 13, offset: 0 },
+                    { row: 4,  seats: 13, offset: 0 },
+                    { row: 3,  seats: 13, offset: 0 },
                     { row: 2,  seats: 10, offset: 1, wheelchairs: ['left', 'right'] },
                     { row: 1,  seats: 10, offset: 2 }
                 ]
@@ -555,7 +555,7 @@
 
                 // --- 3. Build Actual Seats ---
                 for (let i = 1; i <= rowData.seats; i++) {
-                    // for (let i = rowData.seats; i >= 0; i--) {
+                // for (let i = rowData.seats; i >= 0; i--) {
                     
                     // Check if we need to insert an aisle gap here
                     if (rowData.gap && rowData.gap.afterSeat === i - 1) {
