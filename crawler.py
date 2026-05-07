@@ -16,7 +16,10 @@ def start_server():
         webbrowser.open(f"http://localhost:{PORT}")
         httpd.serve_forever()
 
+free = 0
+occupied = 0
 def run_scraper():
+    global free, occupied
     with sync_playwright() as p:
         all_movies_data = {}
         browser = p.chromium.launch(headless=False)
@@ -147,6 +150,9 @@ def run_scraper():
                     date = "Unknown Date"
                     time = "Unknown Time"
 
+                # For the occupied seats
+                last_known_id = 0
+
                 for seat in seats:
                     seat_class = seat.get_attribute("class")
                     
@@ -157,14 +163,16 @@ def run_scraper():
 
                     
                     if "as_1" in seat_class:
+                        last_known_id = int(seat_id[1:])
                         movie_seats_for_screening["available_seats"].append({
                             "id": seat_id,
                             "status": "green (available)"
                         })
                     elif "us_1" in seat_class:
+                        last_known_id +=1
                         movie_seats_for_screening["occupied_seats"].append({
+                            "id": "s"+str(last_known_id),
                             "status": "grey (occupied)"
-                            # "puerta": "Unknown (Data hidden by website)"
                         })
                     else:
                         movie_seats_for_screening["reserved_seats"].append({
@@ -176,6 +184,8 @@ def run_scraper():
                     movie_seats_for_screening["Room"] = room
                 print(f"   -> Found {len(movie_seats_for_screening['available_seats'])} available and {len(movie_seats_for_screening['occupied_seats'])} occupied seats.")
                 all_seats_per_screening[time] = movie_seats_for_screening
+                free += len(movie_seats_for_screening['available_seats'])
+                occupied += len(movie_seats_for_screening['occupied_seats'])
 
             all_movies_data[movie_title] = all_seats_per_screening
                 
@@ -184,6 +194,8 @@ def run_scraper():
 
         # --- SAVE TO JSON ---
         print("\n--- SAVING DATA ---")
+        all_movies_data["total_free"] = free
+        all_movies_data["total_occupied"] = occupied
         with open("movies_data.json", "w", encoding="utf-8") as json_file:
             json.dump(all_movies_data, json_file, indent=4, ensure_ascii=False)
         
@@ -191,4 +203,4 @@ def run_scraper():
 
 if __name__ == "__main__":
     run_scraper()
-    # start_server()
+    start_server()

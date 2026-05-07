@@ -7,7 +7,6 @@
     <style>
         :root {
             --bg-color: #000000;
-            --sidebar-bg: #1a1a1a;
             --floor-color: #585555;
             --seat-available: #9dfb6b;
             --seat-occupied: #979797;
@@ -35,9 +34,9 @@
 
         /* Sidebar Styling */
         #sidebar {
-            width: 300px;
+            width: 350px;
             background-color: var(--sidebar-bg);
-            border-right: 1px solid #333;
+            border-right: 1px;
             padding: 20px;
             overflow-y: auto;
             display: flex;
@@ -67,7 +66,7 @@
 
         .movie-btn {
             background: none;
-            border: 1px solid #333;
+            border: 1px;
             color: var(--text-light);
             padding: 12px;
             width: 100%;
@@ -266,6 +265,7 @@
 
     <div id="sidebar">
         <h2>Filmoteca</h2>
+        <h3 id="occupancy-info"> Aproximadamente el --% de las butacas estan ocupadas</h3>
         <div id="movie-list">
             <!-- Populated by JS -->
         </div>
@@ -315,18 +315,18 @@
                 direction: "ltr",
                 rows: [
                     { row: 13, seats: 13, offset: 2 },
-                    { row: 12, seats: 14, offset: 1 },
+                    { row: 12, seats: 14, offset: 2 },
                     { row: 11, seats: 15, offset: 1 },
-                    { row: 10, seats: 16, unavailable: [16] }, 
-                    { row: 9,  seats: 16, unavailable: [16] },
-                    { row: 8,  seats: 16, unavailable: [16] },
-                    { row: 7,  seats: 16, unavailable: [16] },
+                    { row: 10, seats: 16, unavailable: [16], offset: 1  }, 
+                    { row: 9,  seats: 16, unavailable: [16], offset: 1 },
+                    { row: 8,  seats: 16, unavailable: [16], offset: 1 },
+                    { row: 7,  seats: 16, unavailable: [16], offset: 1 },
                     { row: 6,  seats: 15, offset: 1 },
                     { row: 5,  seats: 15, offset: 1 },
                     { row: 4,  seats: 13, offset: 2 },
-                    { row: 3,  seats: 16 },
-                    { row: 2,  seats: 16, wheelchairs: ['left'], offset: -2},
-                    { row: 1,  seats: 15, wheelchairs: ['left'] }
+                    { row: 3,  seats: 16, offset: 1 },
+                    { row: 2,  seats: 16, wheelchairs: ['left'], offset: -1},
+                    { row: 1,  seats: 15, wheelchairs: ['left'], offset: 1 }
                 ]
             },
             "Sala 3": {
@@ -393,15 +393,31 @@
         function renderSidebar() {
             const list = document.getElementById('movie-list');
             const sessionsByDate = {};
+            
+            let totalFree = moviesData.total_free || 0;
+            let totalOccupied = moviesData.total_occupied || 0;
+            
+            const keysExist = ('total_free' in moviesData && 'total_occupied' in moviesData);
 
             Object.entries(moviesData).forEach(([title, timeSlots]) => {
+                if (title === 'total_free' || title === 'total_occupied') return;
+                
                 Object.entries(timeSlots).forEach(([timeKey, data]) => {
                     const date = data.Date || "Sin fecha";
                     if (!sessionsByDate[date]) sessionsByDate[date] = [];
                     // Inject the exact time key if data.Time is missing
                     sessionsByDate[date].push({ title, timeKey, ...data });
+                    
+                    if (!keysExist) {
+                        totalFree += data.available_seats ? data.available_seats.length : 0;
+                        totalOccupied += data.occupied_seats ? data.occupied_seats.length : 0;
+                    }
                 });
             });
+
+            const totalSeats = totalFree + totalOccupied;
+            const percentage = totalSeats > 0 ? Math.round((totalOccupied / totalSeats) * 100) : 0;
+            document.getElementById('occupancy-info').textContent = `Aproximadamente el ${percentage}% de las butacas estan ocupadas`;
 
             // Sort dates
             const sortedDates = Object.keys(sessionsByDate).sort();
@@ -436,7 +452,7 @@
                     btn.innerHTML = `
                         <div class="movie-info-row">
                             <strong>${session.title}</strong>
-                            <span class="availability-badge">${availabilityPct}% ${occupiedCount} booked</span>
+                            <span class="availability-badge">${occupiedCount} booked</span>
                         </div>
                         <div class="movie-info-row">
                             <small>${session.Room || 'Unknown Room'}</small>
