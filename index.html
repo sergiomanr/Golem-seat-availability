@@ -138,19 +138,18 @@
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             display: flex;
-            flex-direction: column-reverse;
+            flex-direction: column;
             gap: 6px;
             min-width: 450px;
             margin-bottom: 20px;
+            align-items: center; /* Center the rows block */
         }
 
         .theater-row {
-            display: flex;
-            justify-content: center;
-            flex-direction: row-reverse;
+            display: grid;
             gap: 6px;
+            /* We will dynamically set grid-template-columns via JS */
             align-items: center;
-            position: relative;
         }
 
         .seat {
@@ -200,7 +199,7 @@
             color: rgba(255, 255, 255, 0.3);
             text-transform: uppercase;
             letter-spacing: 4px;
-            margin: 8px 0;
+            margin: 0; /* Remove margin to not break grid */
             pointer-events: none;
         }
 
@@ -300,21 +299,82 @@
 
     <script>
         const ROOM_LAYOUTS = {
-            "Sala 1": [
-                { row: 1, seats: 16 }, { row: 2, seats: 16 }, { row: 3, seats: 16 }, { row: 4, seats: 16 },
-                { row: 5, seats: 16 }, { row: 6, seats: 16 }, { row: 7, seats: 16 }, { row: 8, seats: 16 },
-                { row: 9, seats: 16 }, { row: 10, seats: 16 }, { row: 11, seats: 16 }, { row: 12, seats: 16 },
-                { row: 13, seats: 14, offset: 1 }, { row: 14, seats: 12, offset: 2 }, { row: 15, seats: 10, offset: 3 },
-                { type: 'label', text: 'Patio de Butacas' },
-                { row: 16, seats: 17 }, { row: 17, seats: 17 }, { row: 18, seats: 17 }, { row: 19, seats: 17 },
-                { row: 20, seats: 16 },
-                { type: 'label', text: 'Anfiteatro' }
-            ],
-            "Sala 2": [
-                { row: 1, seats: 6 }, { row: 2, seats: 9 }, { row: 3, seats: 10 }, { row: 4, seats: 10 },
-                { row: 5, seats: 10 }, { row: 6, seats: 10 }, { row: 7, seats: 12 }, { row: 8, seats: 11 },
-                { row: 9, seats: 12 }, { row: 10, seats: 12 }, { row: 11, seats: 13 }
-            ]
+            "Sala 1": {
+                direction: "ltr",
+                rows: [
+                    { row: 7, seats: 11 },
+                    { row: 6, seats: 10, offset: 1 },
+                    { row: 5, seats: 10, offset: 1 },
+                    { row: 4, seats: 11, unavailable: [5, 6] },
+                    { row: 3, seats: 11 },
+                    { row: 2, seats: 11 },
+                    { row: 1, seats: 10, wheelchairs: ['left'] }
+                ]
+            },
+            "Sala 2": {
+                direction: "ltr",
+                rows: [
+                    { row: 13, seats: 13, offset: 2 },
+                    { row: 12, seats: 14, offset: 1 },
+                    { row: 11, seats: 15, offset: 1 },
+                    { row: 10, seats: 16, unavailable: [16] }, 
+                    { row: 9,  seats: 16, unavailable: [16] },
+                    { row: 8,  seats: 16, unavailable: [16] },
+                    { row: 7,  seats: 16, unavailable: [16] },
+                    { row: 6,  seats: 15, offset: 1 },
+                    { row: 5,  seats: 15, offset: 1 },
+                    { row: 4,  seats: 13, offset: 2 },
+                    { row: 3,  seats: 16 },
+                    { row: 2,  seats: 16, wheelchairs: ['left'], offset: -2},
+                    { row: 1,  seats: 15, wheelchairs: ['left'] }
+                ]
+            },
+            "Sala 3": {
+                direction: "rtl",
+                rows: [
+                    { row: 7, seats: 10, offset: 3 },
+                    { row: 6, seats: 8, offset: 4 },
+                    { row: 5, seats: 10, gap: { afterSeat: 2, size: 2 } }, 
+                    { row: 4, seats: 8, offset: 4, unavailable: [1, 2] },
+                    { row: 3, seats: 8, offset: 4 },
+                    { row: 2, seats: 9, offset: 4 },
+                    { row: 1, seats: 9, wheelchairs: ['right', 'left'], offset: 3 }
+                ]
+            },
+            "Sala 4": {
+                direction: "rtr",
+                rows: [
+                    { row: 11, seats: 11, offset: 3},
+                    { row: 10, seats: 12, offset: 2},
+                    { row: 9,  seats: 12, offset: 1 },
+                    { row: 8,  seats: 12, offset: 1 },
+                    { row: 7,  seats: 12, offset: 1 },
+                    { row: 6,  seats: 11, offset: 2 },
+                    { row: 5,  seats: 11, offset: 2 },
+                    { row: 4,  seats: 10, offset: 2 },
+                    { row: 3,  seats: 10, offset: 2 },
+                    { row: 2,  seats: 7, offset: 2, wheelchairs: ['left', 'right'] },
+                    { row: 1,  seats: 7, offset: 3 }
+                ]
+            },
+            "Sala 5": {
+                direction: "rtl",
+                rows: [
+                    { row: 13, seats: 13, offset: -1 },
+                    { row: 12, seats: 13, offset: -1 },
+                    { row: 11, seats: 13, offset: -1 },
+                    { row: 10, seats: 13, offset: -1 },
+                    { row: 9,  seats: 13, offset: -1 },
+                    { row: 8,  seats: 12, offset: -2 },
+                    { row: 7,  seats: 11, offset: 1 },
+                    { row: 6,  seats: 10, offset: 2 },
+                    { row: 5,  seats: 13, offset: 1 },
+                    { row: 4,  seats: 13, offset: 1 },
+                    { row: 3,  seats: 13, offset: 1 },
+                    { row: 2,  seats: 10, offset: 1, wheelchairs: ['left', 'right'] },
+                    { row: 1,  seats: 10, offset: 2 }
+                ]
+            }
         };
 
         let moviesData = {};
@@ -334,10 +394,13 @@
             const list = document.getElementById('movie-list');
             const sessionsByDate = {};
 
-            Object.entries(moviesData).forEach(([title, data]) => {
-                const date = data.Date || "Sin fecha";
-                if (!sessionsByDate[date]) sessionsByDate[date] = [];
-                sessionsByDate[date].push({ title, ...data });
+            Object.entries(moviesData).forEach(([title, timeSlots]) => {
+                Object.entries(timeSlots).forEach(([timeKey, data]) => {
+                    const date = data.Date || "Sin fecha";
+                    if (!sessionsByDate[date]) sessionsByDate[date] = [];
+                    // Inject the exact time key if data.Time is missing
+                    sessionsByDate[date].push({ title, timeKey, ...data });
+                });
             });
 
             // Sort dates
@@ -354,13 +417,13 @@
 
                 sessionsByDate[date].forEach(session => {
                     // Calculate availability percentage
-                    const availableCount = session.available_seats.length;
-                    const occupiedCount = session.occupied_seats.length;
+                    const availableCount = session.available_seats ? session.available_seats.length : 0;
+                    const occupiedCount = session.occupied_seats ? session.occupied_seats.length : 0;
                     const totalSeats = availableCount + occupiedCount;
                     const availabilityPct = totalSeats > 0 ? Math.round((availableCount / totalSeats) * 100) : 0;
 
                     // Extract time from URL if possible (fallback to Time property)
-                    let time = session.Time || "";
+                    let time = session.timeKey || session.Time || "";
                     if (!time && session.url && session.url[1]) {
                         const parts = session.url[1].split('/');
                         const lastPart = parts[parts.length - 1];
@@ -373,10 +436,10 @@
                     btn.innerHTML = `
                         <div class="movie-info-row">
                             <strong>${session.title}</strong>
-                            <span class="availability-badge">${availabilityPct}%</span>
+                            <span class="availability-badge">${availabilityPct}% ${occupiedCount} booked</span>
                         </div>
                         <div class="movie-info-row">
-                            <small>${session.Room}</small>
+                            <small>${session.Room || 'Unknown Room'}</small>
                             <small>${time}</small>
                         </div>
                     `;
@@ -405,49 +468,144 @@
         function renderRoom(session) {
             const container = document.getElementById('theater-map');
             container.innerHTML = '';
+            
+            let roomName = session.Room;
+            // Clean up "Sala 04" to "Sala 4" to match ROOM_LAYOUTS keys if needed
+            if (roomName.includes(" 0")) {
+                 roomName = roomName.replace(" 0", " ");
+            }
 
-            const isSala2 = session.Room === "Sala 2";
-            const layout = ROOM_LAYOUTS[session.Room] || ROOM_LAYOUTS["Sala 1"];
-            const availableMap = new Map();
-            session.available_seats.forEach(s => availableMap.set(`${s.row}-${s.number}`, s));
+            const layout = ROOM_LAYOUTS[roomName] || ROOM_LAYOUTS["Sala 1"];
 
-            container.style.alignItems = isSala2 ? 'flex-end' : 'center';
+            // Calculate max slots across all rows for the grid
+            let maxSlots = 0;
+            layout.rows.forEach(r => {
+                let slots = 0;
+                slots += 1; // Left Label
+                if (r.offset) slots += r.offset;
+                if (r.wheelchairs && r.wheelchairs.includes('left')) slots += 1;
+                slots += r.seats;
+                if (r.gap) slots += r.gap.size;
+                if (r.wheelchairs && r.wheelchairs.includes('right')) slots += 1;
+                slots += 1; // Right Label
+                if (slots > maxSlots) maxSlots = slots;
+            });
 
-            layout.forEach(item => {
-                if (item.type === 'label') {
-                    const label = document.createElement('div');
-                    label.className = 'section-label';
-                    label.textContent = item.text;
-                    container.appendChild(label);
-                    return;
-                }
+            // Since movies_data.json only gives us a flat list of available/occupied seats with IDs like "s0", "s1", 
+            // and we don't have explicit row/number in the JSON, we need to map them sequentially.
+            // Let's create a Set of available seat IDs for quick lookup.
+            const availableSeatIds = new Set(session.available_seats.map(s => s.id));
+            let seatIndexCounter = 0; // To track the linear index of seats
 
+            layout.rows.forEach(rowData => {
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'theater-row';
-                rowDiv.style.justifyContent = isSala2 ? 'flex-start' : 'center';
                 
-                for (let n = 1; n <= item.seats; n++) {
-                    const seatData = availableMap.get(`${item.row}-${n}`);
-                    const seatEl = document.createElement('div');
-                    seatEl.classList.add('seat');
-                    
-                    const tooltip = document.createElement('div');
-                    tooltip.classList.add('tooltip');
+                // For perfectly straight columns, force grid size
+                rowDiv.style.gridTemplateColumns = `repeat(${maxSlots}, 22px)`;
+                
+                if (layout.direction === 'rtl') {
+                    rowDiv.style.direction = 'rtl'; // Built-in CSS mirror magic
+                } else {
+                    rowDiv.style.direction = 'ltr';
+                }
 
-                    if (seatData) {
-                        seatEl.classList.add('available');
-                        if (item.row === 1 && (n === 4 || n === 10)) {
-                            seatEl.classList.add('accessible');
+                // Add Left Row Label
+                const labelLeft = document.createElement('div');
+                labelLeft.className = 'row-label section-label';
+                labelLeft.style.width = '22px'; // Match seat width
+                labelLeft.textContent = rowData.row;
+                rowDiv.appendChild(labelLeft);
+
+                // --- 1. Apply Indent Offset (Empty Spaces) ---
+                if (rowData.offset) {
+                    for (let i = 0; i < rowData.offset; i++) {
+                        const empty = document.createElement('div');
+                        empty.className = 'seat empty';
+                        empty.style.backgroundColor = 'transparent';
+                        empty.style.cursor = 'default';
+                        empty.style.boxShadow = 'none';
+                        rowDiv.appendChild(empty);
+                    }
+                }
+
+                // --- 2. Left Wheelchair ---
+                if (rowData.wheelchairs && rowData.wheelchairs.includes('left')) {
+                    const wc = document.createElement('div');
+                    wc.className = 'seat accessible available';
+                    wc.title = 'Silla de ruedas';
+                    rowDiv.appendChild(wc);
+                }
+
+                // --- 3. Build Actual Seats ---
+                for (let i = 1; i <= rowData.seats; i++) {
+                    // for (let i = rowData.seats; i >= 0; i--) {
+                    
+                    // Check if we need to insert an aisle gap here
+                    if (rowData.gap && rowData.gap.afterSeat === i - 1) {
+                        for(let g = 0; g < rowData.gap.size; g++) {
+                             const gapSpan = document.createElement('div');
+                             gapSpan.className = 'seat empty gap';
+                             gapSpan.style.backgroundColor = 'transparent';
+                             gapSpan.style.cursor = 'default';
+                             gapSpan.style.boxShadow = 'none';
+                             rowDiv.appendChild(gapSpan);
                         }
-                        tooltip.innerHTML = `<strong>Fila ${item.row} - Asiento ${n}</strong>`;
-                    } else {
-                        seatEl.classList.add('occupied');
-                        tooltip.innerHTML = `<strong>Fila ${item.row} - Asiento ${n} (Ocupado)</strong>`;
                     }
 
-                    seatEl.appendChild(tooltip);
-                    rowDiv.appendChild(seatEl);
+                    const seat = document.createElement('div');
+                    seat.className = 'seat';
+                    
+                    // Check if seat is marked unavailable by layout (e.g. broken, removed)
+                    if (rowData.unavailable && rowData.unavailable.includes(i)) {
+                        seat.classList.add('occupied'); // Or create an 'unavailable' class
+                        seat.style.opacity = '0.3';
+                    } else {
+                        // Check if seat is available according to the live session data
+                        const seatId = `s${seatIndexCounter}`;
+                        const isAvailable = availableSeatIds.has(seatId);
+
+                        const tooltip = document.createElement('div');
+                        tooltip.classList.add('tooltip');
+
+                        if (isAvailable) {
+                            seat.classList.add('available');
+                            tooltip.innerHTML = `<strong>Fila ${rowData.row} - Asiento ${i}</strong>`;
+                        } else {
+                            seat.classList.add('occupied');
+                            tooltip.innerHTML = `<strong>Fila ${rowData.row} - Asiento ${i} (Ocupado)</strong>`;
+                        }
+                        seat.appendChild(tooltip);
+                        seatIndexCounter++; // Only increment for valid bookable seats
+                    }
+                    rowDiv.appendChild(seat);
                 }
+
+                // --- 4. Right Wheelchair ---
+                if (rowData.wheelchairs && rowData.wheelchairs.includes('right')) {
+                    const wc = document.createElement('div');
+                    wc.className = 'seat accessible available';
+                    wc.title = 'Silla de ruedas';
+                    rowDiv.appendChild(wc);
+                }
+
+                // Fill remaining right slots with empty blocks to maintain grid structure
+                let currentSlots = rowDiv.children.length;
+                for (let i = currentSlots; i < maxSlots - 1; i++) {
+                    const empty = document.createElement('div');
+                    empty.className = 'seat empty';
+                    empty.style.backgroundColor = 'transparent';
+                    empty.style.cursor = 'default';
+                    empty.style.boxShadow = 'none';
+                    rowDiv.appendChild(empty);
+                }
+
+                // Add Right Row Label at the very end
+                const labelRight = document.createElement('div');
+                labelRight.className = 'row-label section-label';
+                labelRight.style.width = '22px'; // Match seat width
+                labelRight.textContent = rowData.row;
+                rowDiv.appendChild(labelRight);
 
                 container.appendChild(rowDiv);
             });

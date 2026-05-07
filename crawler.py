@@ -167,7 +167,7 @@ def run_scraper():
                             # "puerta": "Unknown (Data hidden by website)"
                         })
                     else:
-                        movie_seats_for_screening["reserved_seats"].appen({
+                        movie_seats_for_screening["reserved_seats"].append({
                             "status": "grey (occupied)"
                         })
                     
