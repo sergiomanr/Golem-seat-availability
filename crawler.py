@@ -125,7 +125,8 @@ def run_scraper():
                 seats = page.locator("span.as_1, span.us_1, span.us_1_res").all()
                 movie_seats_for_screening = {
                     "available_seats": [],
-                    "occupied_seats": []
+                    "occupied_seats": [],
+                    "reserved_seats":[]
                 }
 
                 try:
@@ -161,28 +162,29 @@ def run_scraper():
                     except:
                             seat_id = 0
 
-                    
+
                     if "as_1" in seat_class:
                         last_known_id = int(seat_id[1:])
                         movie_seats_for_screening["available_seats"].append({
                             "id": seat_id,
                             "status": "green (available)"
                         })
-                    elif "us_1" in seat_class:
+                    elif "us_1" == seat_class:
                         last_known_id +=1
                         movie_seats_for_screening["occupied_seats"].append({
                             "id": "s"+str(last_known_id),
                             "status": "grey (occupied)"
                         })
-                    else:
+                    elif "us_1_res" == seat_class:
                         movie_seats_for_screening["reserved_seats"].append({
+                            "id": "s"+str(last_known_id),
                             "status": "grey (occupied)"
                         })
                     
                     movie_seats_for_screening["Date"] = date
                     # movie_seats_for_screening["Time"] = time
                     movie_seats_for_screening["Room"] = room
-                print(f"   -> Found {len(movie_seats_for_screening['available_seats'])} available and {len(movie_seats_for_screening['occupied_seats'])} occupied seats.")
+                print(f"   -> Found {len(movie_seats_for_screening['available_seats'])} available and {len(movie_seats_for_screening['occupied_seats'])} occupied seats and {len(movie_seats_for_screening['reserved_seats'])} reserved seats.")
                 all_seats_per_screening[time] = movie_seats_for_screening
                 free += len(movie_seats_for_screening['available_seats'])
                 occupied += len(movie_seats_for_screening['occupied_seats'])
@@ -202,5 +204,5 @@ def run_scraper():
         print("Success! Data saved to 'movies_data.json'.")
 
 if __name__ == "__main__":
-    run_scraper()
+    # run_scraper()
     start_server()

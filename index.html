@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doré Theater - Cartelera</title>
+    <title>Golem Cínes - Cartelera</title>
     <style>
         :root {
             --bg-color: #000000;
@@ -305,10 +305,10 @@
                     { row: 7, seats: 11 },
                     { row: 6, seats: 10, offset: 1 },
                     { row: 5, seats: 10, offset: 1 },
-                    { row: 4, seats: 11, unavailable: [5, 6] },
+                    { row: 4, seats: 11 },
                     { row: 3, seats: 11 },
                     { row: 2, seats: 11 },
-                    { row: 1, seats: 10, wheelchairs: ['left'] }
+                    { row: 1, seats: 10 }
                 ]
             },
             "Sala 2": {
@@ -317,16 +317,16 @@
                     { row: 13, seats: 13, offset: 2 },
                     { row: 12, seats: 14, offset: 2 },
                     { row: 11, seats: 15, offset: 1 },
-                    { row: 10, seats: 16, unavailable: [16], offset: 1  }, 
-                    { row: 9,  seats: 16, unavailable: [16], offset: 1 },
-                    { row: 8,  seats: 16, unavailable: [16], offset: 1 },
-                    { row: 7,  seats: 16, unavailable: [16], offset: 1 },
+                    { row: 10, seats: 16, offset: 1 }, 
+                    { row: 9,  seats: 16, offset: 1 },
+                    { row: 8,  seats: 16, offset: 1 },
+                    { row: 7,  seats: 16, offset: 1 },
                     { row: 6,  seats: 15, offset: 1 },
                     { row: 5,  seats: 15, offset: 1 },
                     { row: 4,  seats: 13, offset: 2 },
                     { row: 3,  seats: 16, offset: 1 },
-                    { row: 2,  seats: 16, wheelchairs: ['left'], offset: -1},
-                    { row: 1,  seats: 15, wheelchairs: ['left'], offset: 1 }
+                    { row: 2,  seats: 16, offset: 1 },
+                    { row: 1,  seats: 15, offset: 2 }
                 ]
             },
             "Sala 3": {
@@ -335,10 +335,10 @@
                     { row: 7, seats: 10, offset: 3 },
                     { row: 6, seats: 8, offset: 4 },
                     { row: 5, seats: 10, gap: { afterSeat: 2, size: 2 } }, 
-                    { row: 4, seats: 8, offset: 4, unavailable: [1, 2] },
+                    { row: 4, seats: 8, offset: 4 },
                     { row: 3, seats: 8, offset: 4 },
                     { row: 2, seats: 9, offset: 4 },
-                    { row: 1, seats: 9, wheelchairs: ['right', 'left'], offset: 3 }
+                    { row: 1, seats: 11, offset: 3 }
                 ]
             },
             "Sala 4": {
@@ -353,8 +353,8 @@
                     { row: 5,  seats: 11, offset: 2 },
                     { row: 4,  seats: 10, offset: 2 },
                     { row: 3,  seats: 10, offset: 2 },
-                    { row: 2,  seats: 7, offset: 2, wheelchairs: ['left', 'right'] },
-                    { row: 1,  seats: 7, offset: 3 }
+                    { row: 2,  seats: 9, offset: 3 },
+                    { row: 1,  seats: 7, offset: 4 }
                 ]
             },
             "Sala 5": {
@@ -371,7 +371,7 @@
                     { row: 5,  seats: 13, offset: 0 },
                     { row: 4,  seats: 13, offset: 0 },
                     { row: 3,  seats: 13, offset: 0 },
-                    { row: 2,  seats: 10, offset: 1, wheelchairs: ['left', 'right'] },
+                    { row: 2,  seats: 12, offset: 1 },
                     { row: 1,  seats: 10, offset: 2 }
                 ]
             }
@@ -546,12 +546,12 @@
                 }
 
                 // --- 2. Left Wheelchair ---
-                if (rowData.wheelchairs && rowData.wheelchairs.includes('left')) {
-                    const wc = document.createElement('div');
-                    wc.className = 'seat accessible available';
-                    wc.title = 'Silla de ruedas';
-                    rowDiv.appendChild(wc);
-                }
+                // if (rowData.wheelchairs && rowData.wheelchairs.includes('left')) {
+                //     const wc = document.createElement('div');
+                //     wc.className = 'seat accessible available';
+                //     wc.title = 'Silla de ruedas';
+                //     rowDiv.appendChild(wc);
+                // }
 
                 // --- 3. Build Actual Seats ---
                 for (let i = 1; i <= rowData.seats; i++) {
@@ -597,13 +597,13 @@
                     rowDiv.appendChild(seat);
                 }
 
-                // --- 4. Right Wheelchair ---
-                if (rowData.wheelchairs && rowData.wheelchairs.includes('right')) {
-                    const wc = document.createElement('div');
-                    wc.className = 'seat accessible available';
-                    wc.title = 'Silla de ruedas';
-                    rowDiv.appendChild(wc);
-                }
+                // // --- 4. Right Wheelchair ---
+                // if (rowData.wheelchairs && rowData.wheelchairs.includes('right')) {
+                //     const wc = document.createElement('div');
+                //     wc.className = 'seat accessible available';
+                //     wc.title = 'Silla de ruedas';
+                //     rowDiv.appendChild(wc);
+                // }
 
                 // Fill remaining right slots with empty blocks to maintain grid structure
                 let currentSlots = rowDiv.children.length;
