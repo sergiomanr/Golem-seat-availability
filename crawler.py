@@ -8,7 +8,7 @@ import webbrowser
 def start_server():
     PORT = 8000
     Handler = http.server.SimpleHTTPRequestHandler
-    # Use allow_reuse_address to prevent "Address already in use" errors on restart
+    
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
         print(f"\nDashboard ready at http://localhost:{PORT}")
@@ -22,7 +22,7 @@ def run_scraper():
     global free, occupied
     with sync_playwright() as p:
         all_movies_data = {}
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
 
         print("Loading the main page...")
@@ -59,23 +59,8 @@ def run_scraper():
                     if len(href.strip("/").split("/")) >= 3: 
                         full_url = href if href.startswith("http") else f"https://www.golem.es{href}"
                         movie_urls.add(full_url)
-            
-
-        # print("\n--- HARVESTING LINKS PAGE 2---")
-        # page.goto("https://entradasfilmoteca.sacatuentrada.es/es/busqueda?&pagina=2", wait_until="networkidle")
-        # links_2 = page.locator("a").all()
-
-        # for link in links_2:
-        #     raw_href = link.get_attribute("href")
-        #     if raw_href:
-        #         href = raw_href.strip()
-        #         if "/es/entradas/" in href:
-        #             if len(href.strip("/").split("/")) >= 3: 
-        #                 full_url = href if href.startswith("http") else f"https://entradasfilmoteca.sacatuentrada.es{href}"
-        #                 movie_urls.add(full_url)
 
         print(f"Found {len(movie_urls)} unique, clean movie pages!")
-        # print(movie_urls)
 
         print("\n--- VISITING EACH MOVIE ---")
         movie_urls_2 = []
@@ -91,8 +76,7 @@ def run_scraper():
                     href = raw_href.strip()
                     if "madrid.admit-one.eu" in href:
                         movie_urls_2.append(href)
-            # break
-        # print(movie_urls_2)
+
 
         final_screening_urls = []
         for url in movie_urls_2:
@@ -101,7 +85,6 @@ def run_scraper():
             page.wait_for_timeout(2000)
             screenings_per_movie = []
             try:
-                # Find all 'a' tags inside the first 'div.my-4'
                 screening_links = page.locator("div.my-4").first.locator("a").all()
                 for link in screening_links:
                     href = link.get_attribute("href")
@@ -110,9 +93,6 @@ def run_scraper():
             except Exception as e:
                 print(f"Could not extract screening links: {e}")
             final_screening_urls.append(screenings_per_movie)
-            
-
-        # print(final_screening_urls)
             
 
         for movie in final_screening_urls:
@@ -182,9 +162,8 @@ def run_scraper():
                         })
                     
                     movie_seats_for_screening["Date"] = date
-                    # movie_seats_for_screening["Time"] = time
                     movie_seats_for_screening["Room"] = room
-                print(f"   -> Found {len(movie_seats_for_screening['available_seats'])} available and {len(movie_seats_for_screening['occupied_seats'])} occupied seats and {len(movie_seats_for_screening['reserved_seats'])} reserved seats.")
+                # print(f"   -> Found {len(movie_seats_for_screening['available_seats'])} available and {len(movie_seats_for_screening['occupied_seats'])} occupied seats and {len(movie_seats_for_screening['reserved_seats'])} reserved seats.")
                 all_seats_per_screening[time] = movie_seats_for_screening
                 free += len(movie_seats_for_screening['available_seats'])
                 occupied += len(movie_seats_for_screening['occupied_seats'])
@@ -204,5 +183,5 @@ def run_scraper():
         print("Success! Data saved to 'movies_data.json'.")
 
 if __name__ == "__main__":
-    # run_scraper()
+    run_scraper()
     start_server()

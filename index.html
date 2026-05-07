@@ -264,8 +264,7 @@
 <body>
 
     <div id="sidebar">
-        <h2>Filmoteca</h2>
-        <h3 id="occupancy-info"> Aproximadamente el --% de las butacas estan ocupadas</h3>
+        <h3 id="occupancy-info"> Aproximadamente el --% de las butacas están ocupadas</h3>
         <div id="movie-list">
             <!-- Populated by JS -->
         </div>
@@ -325,8 +324,8 @@
                     { row: 5,  seats: 15, offset: 1 },
                     { row: 4,  seats: 13, offset: 2 },
                     { row: 3,  seats: 16, offset: 1 },
-                    { row: 2,  seats: 16, offset: 1 },
-                    { row: 1,  seats: 15, offset: 2 }
+                    { row: 2,  seats: 17, offset: 1 },
+                    { row: 1,  seats: 16, offset: 2 }
                 ]
             },
             "Sala 3": {
@@ -417,7 +416,7 @@
 
             const totalSeats = totalFree + totalOccupied;
             const percentage = totalSeats > 0 ? Math.round((totalOccupied / totalSeats) * 100) : 0;
-            document.getElementById('occupancy-info').textContent = `Aproximadamente el ${percentage}% de las butacas estan ocupadas`;
+            document.getElementById('occupancy-info').textContent = `Aproximadamente el ${percentage}% de las butacas están ocupadas`;
 
             // Sort dates
             const sortedDates = Object.keys(sessionsByDate).sort();
@@ -452,7 +451,7 @@
                     btn.innerHTML = `
                         <div class="movie-info-row">
                             <strong>${session.title}</strong>
-                            <span class="availability-badge">${occupiedCount} booked</span>
+                            <span class="availability-badge">${occupiedCount}/${availableCount} booked</span>
                         </div>
                         <div class="movie-info-row">
                             <small>${session.Room || 'Unknown Room'}</small>
